@@ -1,0 +1,18 @@
+#cloud-config
+users:
+  - name: core
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDkdp7+1EAwfTLlrJd10fKeLqedYh6qwlpXCtk3dtChqwxKNYvNxGJV7n34earmU0hxt26oqrXCLnp1OBlqO1SifKSqwr5+LIpz2uJxHA/wqVOMHmrzTlWMw8ljCBvDcQi323USt9IxqvO9WLICiVSujXYGReVcg9QGoyViAz1NTQ== core@example.com
+coreos:
+  units:
+    - name: var-lib-docker.mount
+      command: start
+      content: |
+        [Unit]
+        Description=Mount /var/lib/docker
+        After=dev-sdb.device
+        Requires=dev-sdb.device
+        [Mount]
+        What=/dev/sdb
+        Where=/var/lib/docker
+        Type=ext4
