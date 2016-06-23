@@ -7,11 +7,13 @@ coreos:
   units:
     - name: format-sdb.service
       command: start
+      runtime: true
       content: |
         [Unit]
         Description=Format /dev/sdb
         Requires=dev-sdb.device
         After=dev-sdb.device
+        ConditionFirstBoot=true
         [Service]
         Type=oneshot
         RemainAfterExit=yes
