@@ -38,5 +38,14 @@ coreos:
             [Unit]
             After=var-lib-docker.mount
             Requires=var-lib-docker.mount
+    - name: settimezone.service
+      command: start
+      content: |
+        [Unit]
+        Description=Set the time zone
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/bin/timedatectl set-timezone Asia/Shanghai
   update:
     reboot-strategy: off
