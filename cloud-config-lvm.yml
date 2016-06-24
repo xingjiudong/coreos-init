@@ -51,4 +51,4 @@ coreos:
         RemainAfterExit=yes
         ExecStart=/usr/bin/timedatectl set-timezone Asia/Shanghai
   update:
-    reboot-strategy: off
+    reboot-strategy: best-effort
