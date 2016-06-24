@@ -5,12 +5,12 @@ ssh_authorized_keys:
   - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDkdp7+1EAwfTLlrJd10fKeLqedYh6qwlpXCtk3dtChqwxKNYvNxGJV7n34earmU0hxt26oqrXCLnp1OBlqO1SifKSqwr5+LIpz2uJxHA/wqVOMHmrzTlWMw8ljCBvDcQi323USt9IxqvO9WLICiVSujXYGReVcg9QGoyViAz1NTQ== core@example.com
 coreos:
   units:
-    - name: format-sdb.service
+    - name: format-lvm.service
       command: start
       runtime: true
       content: |
         [Unit]
-        Description=Format /dev/sdb
+        Description=Format lvm
         Requires=dev-sdb.device
         After=dev-sdb.device
         ConditionFirstBoot=true
@@ -18,16 +18,19 @@ coreos:
         Type=oneshot
         RemainAfterExit=yes
         ExecStart=/usr/sbin/wipefs -f /dev/sdb
-        ExecStart=/usr/sbin/mkfs.ext4 -F /dev/sdb
+        ExecStart=/usr/sbin/pvcreate -f /dev/sdb
+        ExecStart=/usr/sbin/vgcreate vg01 /dev/sdb
+        ExecStart=/usr/sbin/lvcreate -L 99G --name docker_vol vg01
+        ExecStart=/usr/sbin/mkfs.ext4 -F /dev/vg01/docker_vol
     - name: var-lib-docker.mount
       command: start
       content: |
         [Unit]
         Description=Mount /var/lib/docker
-        Requires=format-sdb.service
-        After=format-sdb.service
+        Requires=format-lvm.service
+        After=format-lvm.service
         [Mount]
-        What=/dev/sdb
+        What=/dev/vg01/docker_vol
         Where=/var/lib/docker
         Type=ext4
     - name: docker.service
