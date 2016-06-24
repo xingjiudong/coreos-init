@@ -30,3 +30,5 @@ coreos:
         What=/dev/sdb
         Where=/var/lib/docker
         Type=ext4
+  update:
+    reboot-strategy: off

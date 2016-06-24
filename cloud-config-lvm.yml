@@ -33,3 +33,5 @@ coreos:
         What=/dev/vg01/docker_vol
         Where=/var/lib/docker
         Type=ext4
+  update:
+    reboot-strategy: off
