@@ -30,5 +30,13 @@ coreos:
         What=/dev/sdb
         Where=/var/lib/docker
         Type=ext4
+    - name: docker.service
+      command: start
+      drop-ins:
+        - name: 10-wait-docker.conf
+          content: |
+            [Unit]
+            After=var-lib-docker.mount
+            Requires=var-lib-docker.mount
   update:
     reboot-strategy: off
