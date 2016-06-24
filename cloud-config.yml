@@ -17,12 +17,10 @@ coreos:
     - name: etcd2.service
       command: start
   etcd2:
-    name: discovery0
-    initial-cluster: discovery0=http://$private_ipv4:2380
+    discovery: http://172.20.201.212:2379/v2/keys/discovery/ff1bab1b-dce0-480c-9470-3b7be1163cb2
     initial-advertise-peer-urls: http://$private_ipv4:2380
     advertise-client-urls: http://$private_ipv4:2379,http://$private_ipv4:4001
     listen-peer-urls: http://$private_ipv4:2380
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
-    initial-cluster-state: new
   update:
     reboot-strategy: best-effort
