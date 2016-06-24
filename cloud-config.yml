@@ -4,5 +4,15 @@ users:
 ssh_authorized_keys:
   - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDkdp7+1EAwfTLlrJd10fKeLqedYh6qwlpXCtk3dtChqwxKNYvNxGJV7n34earmU0hxt26oqrXCLnp1OBlqO1SifKSqwr5+LIpz2uJxHA/wqVOMHmrzTlWMw8ljCBvDcQi323USt9IxqvO9WLICiVSujXYGReVcg9QGoyViAz1NTQ== core@example.com
 coreos:
+  units:
+    - name: settimezone.service
+      command: start
+      content: |
+        [Unit]
+        Description=Set the time zone
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/bin/timedatectl set-timezone Asia/Shanghai
   update:
     reboot-strategy: best-effort
