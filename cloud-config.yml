@@ -14,13 +14,42 @@ coreos:
         Type=oneshot
         RemainAfterExit=yes
         ExecStart=/usr/bin/timedatectl set-timezone Asia/Shanghai
+    - name: etcd2-discovery-url.service
+      command: start
+      runtime: true
+      content: |
+        [Unit]
+        Description=Set etcd discovery url from ovfEnv
+        Requires=vmtoolsd.service
+        After=vmtoolsd.service
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/echo 'Writing file to "/etc/etcd2.env"'
+        ExecStart=/usr/share/oem/bin/setup-etcd2-discovery-env
+        ExecStart=/usr/bin/echo 'Wrote file to "/etc/etcd2.env"'
     - name: etcd2.service
       command: start
+      drop-ins:
+        - name: 30-discovery.conf
+          content: |
+            [Service]
+            EnvironmentFile=/etc/etcd2.env
   etcd2:
-    discovery: http://172.20.201.212:2379/v2/keys/discovery/ff1bab1b-dce0-480c-9470-3b7be1163cb2
     initial-advertise-peer-urls: http://$private_ipv4:2380
     advertise-client-urls: http://$private_ipv4:2379,http://$private_ipv4:4001
     listen-peer-urls: http://$private_ipv4:2380
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
   update:
     reboot-strategy: best-effort
+write_files:
+  - path: /usr/share/oem/bin/setup-etcd2-discovery-env
+    permissions: 0755
+    owner: root
+    content: |
+      #!/usr/bin/env sh
+      ENV_FILE_PATH=/etc/etcd2.env
+      
+      LINE=$(/usr/share/oem/bin/vmtoolsd --cmd "info-get guestinfo.ovfEnv" | grep guestinfo.etcd.discovery.url)
+      LINE=${LINE##*oe:value=}
+      URL=${LINE%/>}
+      echo ETCD_DISCOVERY=${URL} > ${ENV_FILE_PATH}
