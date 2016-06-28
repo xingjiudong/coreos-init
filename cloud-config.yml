@@ -25,7 +25,7 @@ coreos:
         [Service]
         Type=oneshot
         ExecStart=/usr/bin/echo 'Writing file to "/etc/etcd2.env"'
-        ExecStart=/usr/share/oem/bin/setup-etcd2-discovery-env
+        ExecStart=/srv/setup-etcd2-discovery-env
         ExecStart=/usr/bin/echo 'Wrote file to "/etc/etcd2.env"'
     - name: etcd2.service
       command: start
@@ -44,7 +44,7 @@ coreos:
   update:
     reboot-strategy: best-effort
 write_files:
-  - path: /usr/share/oem/bin/setup-etcd2-discovery-env
+  - path: /srv/setup-etcd2-discovery-env
     permissions: 0755
     owner: root
     content: |
