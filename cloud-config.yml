@@ -32,6 +32,8 @@ coreos:
       drop-ins:
         - name: 30-discovery.conf
           content: |
+            [Unit]
+            After=etcd2-discovery-url.service
             [Service]
             EnvironmentFile=/etc/etcd2.env
   etcd2:
