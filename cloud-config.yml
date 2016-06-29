@@ -85,6 +85,14 @@ coreos:
             After=etcd2-discovery-url.service
             [Service]
             EnvironmentFile=/etc/etcd2.env
+    - name: advertise-swarm-node.service
+      content: |
+        [Unit]
+        Requires=docker.service
+        After=docker.srevice
+        [Service]
+        Type=oneshot
+        ExecStart=/srv/advertise-swarm-node
   etcd2:
     initial-advertise-peer-urls: http://$private_ipv4:2380
     advertise-client-urls: http://$private_ipv4:2379,http://$private_ipv4:4001
@@ -104,3 +112,15 @@ write_files:
       LINE=${LINE##*oe:value=}
       URL=${LINE%/>}
       echo ETCD_DISCOVERY=${URL} > ${ENV_FILE_PATH}
+  - path: /srv/advertise-swarm-node
+    permissions: 0755
+    owner: root
+    content: |
+      #!/usr/bin/env sh
+      
+      /usr/bin/docker run --name swarm \
+        --restart=unless-stopped \
+        -d swarm \
+        join \
+        --advertise=$private_ipv4:2375 \
+        etcd://$private_ipv4:2379
