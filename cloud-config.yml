@@ -24,7 +24,8 @@ coreos:
         After=vmtoolsd.service
         [Service]
         Type=oneshot
-        ExecStart=/usr/bin/echo 'Writing file to "/etc/etcd2.env"'
+        RemainAfterExit=yes
+        ExecStartPre=/usr/bin/echo 'Writing file to "/etc/etcd2.env"'
         ExecStart=/srv/setup-etcd2-discovery-env
         ExecStart=/usr/bin/echo 'Wrote file to "/etc/etcd2.env"'
     - name: etcd2.service
@@ -33,6 +34,7 @@ coreos:
         - name: 30-discovery.conf
           content: |
             [Unit]
+            Requires=etcd2-discovery-url.service
             After=etcd2-discovery-url.service
             [Service]
             EnvironmentFile=/etc/etcd2.env
