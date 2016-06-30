@@ -26,3 +26,14 @@ coreos:
     initial-cluster-state: new
   update:
     reboot-strategy: best-effort
+write_files:
+  - path: /srv/get-cluster-token
+    permissions: 0755
+    owner: root
+    content: |
+      #!/usr/bin/env sh
+      TOKEN_PATH="v2/keys/discovery"
+      UUID="$(uuidgen)"
+      
+      curl -X PUT http://$private_ipv4:2379/${TOKEN_PATH}/${UUID}/_config/size -d value=3
+      echo "ETCD_DISCOVERY=http://$private_ipv4:2379/${TOKEN_PATH}/${UUID}"
