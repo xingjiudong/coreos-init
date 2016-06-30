@@ -88,11 +88,19 @@ coreos:
     - name: advertise-swarm-node.service
       content: |
         [Unit]
-        Requires=docker.service
-        After=docker.srevice
+        Requires=docker.service etcd2.service
+        After=docker.srevice etcd2.service
         [Service]
         Type=oneshot
         ExecStart=/srv/advertise-swarm-node
+    - name: advertise-swarm-manager.service
+      content: |
+        [Unit]
+        Requires=docker.service etcd2.service
+        After=docker.srevice etcd2.service
+        [Service]
+        Type=oneshot
+        ExecStart=/srv/advertise-swarm-manager
   etcd2:
     initial-advertise-peer-urls: http://$private_ipv4:2380
     advertise-client-urls: http://$private_ipv4:2379,http://$private_ipv4:4001
@@ -123,4 +131,18 @@ write_files:
         -d swarm \
         join \
         --advertise=$private_ipv4:2375 \
+        etcd://$private_ipv4:2379
+  - path: /srv/advertise-swarm-manager
+    permissions: 0755
+    own: root
+    content: |
+      #!/bin/bash
+      
+      /usr/bin/docker run --name swarm-master \
+        --restart=unless-stopped \
+        -p 9999:2375 \
+        -d swarm \
+        manage \
+        --replication \
+        --advertise $private_ipv4:9999 \
         etcd://$private_ipv4:2379
