@@ -140,7 +140,7 @@ write_files:
     content: |
       #!/bin/bash
       
-      /usr/bin/docker run --name swarm-master \
+      /usr/bin/docker run --name swarm-manager \
         --restart=unless-stopped \
         -p 9999:2375 \
         -d swarm \
