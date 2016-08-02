@@ -136,7 +136,7 @@ write_files:
         etcd://$private_ipv4:2379
   - path: /srv/advertise-swarm-manager
     permissions: 0755
-    own: root
+    owner: root
     content: |
       #!/bin/bash
       
