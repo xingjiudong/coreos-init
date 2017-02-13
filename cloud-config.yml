@@ -25,7 +25,7 @@ coreos:
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
     initial-cluster-state: new
   update:
-    reboot-strategy: best-effort
+    reboot-strategy: etcd-lock
 write_files:
   - path: /srv/get-cluster-token
     permissions: 0755
