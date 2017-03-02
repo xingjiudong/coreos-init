@@ -48,8 +48,8 @@ coreos:
         - name: 10-wait-docker.conf
           content: |
             [Unit]
-            After=docker.socket early-docker.target network.target var-lib-docker.mount etcd2.service
-            Requires=docker.socket early-docker.target var-lib-docker.mount etcd2.service
+            After=docker.socket network.target var-lib-docker.mount etcd2.service
+            Requires=docker.socket var-lib-docker.mount etcd2.service
         - name: 20-docker.conf
           content: |
             [Service]
