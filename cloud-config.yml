@@ -5,6 +5,42 @@ ssh_authorized_keys:
   - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQD0b7/p6r/OB0ETmuWANndHdVlFzDA1vSD0ByO6/wbcwiz8265oWajfmCmrEhTEG6WMX5RQWZ2L/56Sb+MlcZQpZp77QKikgyqpfJdHuyq1bAIvfbl9Z8Ms1zYQMjdlOVbdNxQV7F3eMoh7bFIoXsDiatbPxEf8H9TkJI1UaPT1Gw== core@example.com
 coreos:
   units:
+    - name: format-lvm.service
+      command: start
+      runtime: true
+      content: |
+        [Unit]
+        Description=Format lvm
+        Requires=dev-sdb.device
+        After=dev-sdb.device
+        ConditionFirstBoot=true
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/sbin/wipefs -f /dev/sdb
+        ExecStart=/usr/sbin/pvcreate -f /dev/sdb
+        ExecStart=/usr/sbin/vgcreate vg01 /dev/sdb
+        ExecStart=/usr/sbin/lvcreate -L 99G --name docker_vol vg01
+        ExecStart=/usr/sbin/mkfs.ext4 -F /dev/vg01/docker_vol
+    - name: var-lib-docker.mount
+      command: start
+      content: |
+        [Unit]
+        Description=Mount /var/lib/docker
+        Requires=format-lvm.service
+        After=format-lvm.service
+        [Mount]
+        What=/dev/vg01/docker_vol
+        Where=/var/lib/docker
+        Type=ext4
+    - name: docker.service
+      command: start
+      drop-ins:
+        - name: 10-wait-docker.conf
+          content: |
+            [Unit]
+            After=var-lib-docker.mount
+            Requires=var-lib-docker.mount
     - name: settimezone.service
       command: start
       content: |
