@@ -60,8 +60,8 @@ coreos:
     listen-peer-urls: http://$private_ipv4:2380
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
     initial-cluster-state: new
-  update:
-    reboot-strategy: etcd-lock
+  locksmith:
+    reboot-strategy: off
 write_files:
   - path: /srv/get-cluster-token
     permissions: 0755
