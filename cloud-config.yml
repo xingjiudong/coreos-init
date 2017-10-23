@@ -60,8 +60,9 @@ coreos:
     listen-peer-urls: http://$private_ipv4:2380
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
     initial-cluster-state: new
-  locksmith:
+  update:
     reboot-strategy: etcd-lock
+  locksmith:
     window-start: Thu 17:30
     window-length: 30m
 write_files:
