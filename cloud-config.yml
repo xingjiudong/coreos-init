@@ -61,7 +61,9 @@ coreos:
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
     initial-cluster-state: new
   locksmith:
-    reboot-strategy: off
+    reboot-strategy: etcd-lock
+    window-start: Thu 17:30
+    window-length: 30m
 write_files:
   - path: /srv/get-cluster-token
     permissions: 0755
