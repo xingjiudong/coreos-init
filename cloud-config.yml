@@ -53,7 +53,7 @@ coreos:
         - name: 20-docker.conf
           content: |
             [Service]
-            Environment="DOCKER_OPTS=--log-driver=journald --cluster-store=etcd://localhost:2379 --cluster-advertise=ens192:2375 --registry-mirror=https://brxyngac.mirror.aliyuncs.com"
+            Environment="DOCKER_OPTS=--log-driver=journald --cluster-store=etcd://localhost:2379 --cluster-advertise=ens192:2375 --registry-mirror=https://registry.docker-cn.com"
     - name: settimezone.service
       command: start
       content: |
