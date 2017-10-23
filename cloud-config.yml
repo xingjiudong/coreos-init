@@ -137,8 +137,9 @@ coreos:
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
     heartbeat-interval: 500
     election-timeout: 2500
-  locksmith:
+  update:
     reboot-strategy: etcd-lock
+  locksmith:
     window-start: Fri 17:00
     window-length: 1h30m
 write_files:
