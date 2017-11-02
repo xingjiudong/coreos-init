@@ -107,29 +107,6 @@ coreos:
         RestartSec=10s
         TimeoutStartSec=120
         TimeoutStopSec=15
-    - name: advertise-swarm-manager.service
-      command: start
-      content: |
-        [Unit]
-        Description=Advertise this node as a docker swarm manager
-        Requires=docker.service etcd2.service
-        After=docker.service etcd2.service
-        [Service]
-        ExecStartPre=-/usr/bin/docker kill %p
-        ExecStartPre=-/usr/bin/docker rm -v %p
-        ExecStart=/usr/bin/docker run --rm --name %p \
-            --restart=unless-stopped \
-            -p 9999:2375 \
-            swarm \
-            manage \
-            --replication \
-            --advertise $private_ipv4:9999 \
-            etcd://$private_ipv4:2379
-        ExecStop=/usr/bin/docker stop %p
-        Restart=always
-        RestartSec=10s
-        TimeoutStartSec=120
-        TimeoutStopSec=15
   etcd2:
     initial-advertise-peer-urls: http://$private_ipv4:2380
     advertise-client-urls: http://$private_ipv4:2379,http://$private_ipv4:4001
@@ -165,18 +142,4 @@ write_files:
         -d swarm \
         join \
         --advertise=$private_ipv4:2375 \
-        etcd://$private_ipv4:2379
-  - path: /srv/advertise-swarm-manager
-    permissions: 0755
-    owner: root
-    content: |
-      #!/bin/bash
-      
-      /usr/bin/docker run --name swarm-manager \
-        --restart=unless-stopped \
-        -p 9999:2375 \
-        -d swarm \
-        manage \
-        --replication \
-        --advertise $private_ipv4:9999 \
         etcd://$private_ipv4:2379
