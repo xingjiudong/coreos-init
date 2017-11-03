@@ -39,7 +39,8 @@ coreos:
         - name: 20-tcp-listen-stream.conf
           content: |
             [Socket]
-            ListenStream=2375
+            ListenStream=$private_ipv4:2375
+            FreeBind=true
     - name: docker.service
       drop-ins:
         - name: 10-wait-docker.conf
