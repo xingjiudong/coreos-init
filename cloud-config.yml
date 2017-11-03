@@ -33,16 +33,13 @@ coreos:
         What=/dev/vg01/docker_vol
         Where=/var/lib/docker
         Type=ext4
-    - name: docker-tcp.socket
+    - name: docker.socket
       command: start
-      content: |
-        [Unit]
-        Description=Docker TCP Socket for the API
-        [Socket]
-        ListenStream=2375
-        Service=docker.service
-        [Install]
-        WantedBy=sockets.target
+      drop-ins:
+        - name: 20-tcp-listen-stream.conf
+          content: |
+            [Socket]
+            ListenStream=2375
     - name: docker.service
       drop-ins:
         - name: 10-wait-docker.conf
