@@ -34,6 +34,7 @@ coreos:
         Where=/var/lib/docker
         Type=ext4
     - name: docker.socket
+      command: start
       drop-ins:
         - name: 20-tcp-listen-stream.conf
           content: |
