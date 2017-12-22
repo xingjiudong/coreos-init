@@ -5,34 +5,6 @@ ssh_authorized_keys:
   - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQD0b7/p6r/OB0ETmuWANndHdVlFzDA1vSD0ByO6/wbcwiz8265oWajfmCmrEhTEG6WMX5RQWZ2L/56Sb+MlcZQpZp77QKikgyqpfJdHuyq1bAIvfbl9Z8Ms1zYQMjdlOVbdNxQV7F3eMoh7bFIoXsDiatbPxEf8H9TkJI1UaPT1Gw== core@example.com
 coreos:
   units:
-    - name: format-lvm.service
-      command: start
-      runtime: true
-      content: |
-        [Unit]
-        Description=Format lvm
-        Requires=dev-sdb.device
-        After=dev-sdb.device
-        ConditionFirstBoot=true
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStart=/usr/sbin/wipefs -f /dev/sdb
-        ExecStart=/usr/sbin/pvcreate -f /dev/sdb
-        ExecStart=/usr/sbin/vgcreate vg01 /dev/sdb
-        ExecStart=/usr/sbin/lvcreate -L 99G --name docker_vol vg01
-        ExecStart=/usr/sbin/mkfs.ext4 -F /dev/vg01/docker_vol
-    - name: var-lib-docker.mount
-      command: start
-      content: |
-        [Unit]
-        Description=Mount /var/lib/docker
-        Requires=format-lvm.service
-        After=format-lvm.service
-        [Mount]
-        What=/dev/vg01/docker_vol
-        Where=/var/lib/docker
-        Type=ext4
     - name: docker.socket
       drop-ins:
         - name: 20-tcp-listen-stream.conf
@@ -44,8 +16,8 @@ coreos:
         - name: 10-wait-docker.conf
           content: |
             [Unit]
-            After=docker.socket network.target var-lib-docker.mount etcd2.service
-            Requires=docker.socket var-lib-docker.mount etcd2.service
+            After=docker.socket network.target etcd2.service
+            Requires=docker.socket etcd2.service
         - name: 20-docker.conf
           content: |
             [Service]
@@ -59,20 +31,6 @@ coreos:
         Type=oneshot
         RemainAfterExit=yes
         ExecStart=/usr/bin/timedatectl set-timezone Asia/Shanghai
-    - name: etcd2-discovery-url.service
-      command: start
-      runtime: true
-      content: |
-        [Unit]
-        Description=Set etcd discovery url from ovfEnv
-        Requires=vmtoolsd.service
-        After=vmtoolsd.service
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStartPre=/usr/bin/echo 'Writing file to "/etc/etcd2.env"'
-        ExecStart=/srv/setup-etcd2-discovery-env
-        ExecStart=/usr/bin/echo 'Wrote file to "/etc/etcd2.env"'
     - name: etcd2.service
       command: start
       drop-ins:
@@ -83,95 +41,8 @@ coreos:
             After=etcd2-discovery-url.service
             [Service]
             EnvironmentFile=/etc/etcd2.env
-    - name: advertise-swarm-node.service
-      command: start
-      content: |
-        [Unit]
-        Description=Advertise this node as a docker swarm node
-        Requires=docker.service etcd2.service
-        After=docker.service etcd2.service
-        [Service]
-        ExecStartPre=-/usr/bin/docker kill %p
-        ExecStartPre=-/usr/bin/docker rm -v %p
-        ExecStart=/usr/bin/docker run --rm --name %p \
-            swarm \
-            join \
-            --advertise=$private_ipv4:2375 \
-            etcd://$private_ipv4:2379
-        ExecStop=/usr/bin/docker stop %p
-        Restart=always
-        RestartSec=10s
-        TimeoutStartSec=120
-        TimeoutStopSec=15
-    - name: advertise-swarm-manager.service
-      command: start
-      content: |
-        [Unit]
-        Description=Advertise this node as a docker swarm manager
-        Requires=docker.service etcd2.service
-        After=docker.service etcd2.service
-        [Service]
-        ExecStartPre=-/usr/bin/docker kill %p
-        ExecStartPre=-/usr/bin/docker rm -v %p
-        ExecStart=/usr/bin/docker run --rm --name %p \
-            -p 9999:2375 \
-            swarm \
-            manage \
-            --replication \
-            --advertise $private_ipv4:9999 \
-            etcd://$private_ipv4:2379
-        ExecStop=/usr/bin/docker stop %p
-        Restart=always
-        RestartSec=10s
-        TimeoutStartSec=120
-        TimeoutStopSec=15
-  etcd2:
-    initial-advertise-peer-urls: http://$private_ipv4:2380
-    advertise-client-urls: http://$private_ipv4:2379,http://$private_ipv4:4001
-    listen-peer-urls: http://0.0.0.0:2380
-    listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
-    heartbeat-interval: 500
-    election-timeout: 2500
   update:
     reboot-strategy: etcd-lock
   locksmith:
     window-start: Fri 17:00
     window-length: 1h30m
-write_files:
-  - path: /srv/setup-etcd2-discovery-env
-    permissions: 0755
-    owner: root
-    content: |
-      #!/usr/bin/env sh
-      ENV_FILE_PATH=/etc/etcd2.env
-      
-      LINE=$(/usr/share/oem/bin/vmtoolsd --cmd "info-get guestinfo.ovfEnv" | grep guestinfo.etcd.discovery.url)
-      LINE=${LINE##*oe:value=}
-      URL=${LINE%/>}
-      echo ETCD_DISCOVERY=${URL} > ${ENV_FILE_PATH}
-  - path: /srv/advertise-swarm-node
-    permissions: 0755
-    owner: root
-    content: |
-      #!/usr/bin/env sh
-      
-      /usr/bin/docker run --name swarm \
-        --restart=unless-stopped \
-        -d swarm \
-        join \
-        --advertise=$private_ipv4:2375 \
-        etcd://$private_ipv4:2379
-  - path: /srv/advertise-swarm-manager
-    permissions: 0755
-    owner: root
-    content: |
-      #!/bin/bash
-      
-      /usr/bin/docker run --name swarm-manager \
-        --restart=unless-stopped \
-        -p 9999:2375 \
-        -d swarm \
-        manage \
-        --replication \
-        --advertise $private_ipv4:9999 \
-        etcd://$private_ipv4:2379
