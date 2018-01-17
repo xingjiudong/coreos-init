@@ -40,8 +40,8 @@ coreos:
     window-length: 1h30m
 
 write_files:
-  - path: /etc/etcd2/env
-    permissions: 0755
+  - path: /etc/etcd2.env
+    permissions: 0655
     owner: root
 content: |
 
