@@ -38,3 +38,10 @@ coreos:
   locksmith:
     window-start: Fri 17:00
     window-length: 1h30m
+
+write_files:
+  - path: /etc/etcd2/env
+    permissions: 0755
+    owner: root
+content: |
+
