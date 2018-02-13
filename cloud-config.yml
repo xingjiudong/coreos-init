@@ -107,7 +107,7 @@ coreos:
   etcd2:
     proxy: on
     advertise-client-urls: http://$private_ipv4:2379,http://$private_ipv4:4001
-    listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
+    listen-client-urls: http://$private_ipv4:2379,http://$private_ipv4:4001
   update:
     reboot-strategy: etcd-lock
   locksmith:
